@@ -1,0 +1,7 @@
+data/
+models/
+logs/
+.vscode/
+config.pickle
+.DS_Store
+*.pyc
