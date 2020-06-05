@@ -4,6 +4,11 @@ import xml.etree.ElementTree as ET
 import cv2
 
 def get_data(input_path):
+    '''
+    1. iterate all Annotations data,and save to all_images
+    2. update classes_count
+    3. update classes_mapping
+    '''
     all_image = []
     classes_count = {}
     class_mapping = {}
@@ -21,6 +26,7 @@ def get_data(input_path):
         imgsets_path_val = os.path.join(data_path, "ImageSets", "Main", "val.txt")
         imgsets_path_test = os.path.join(data_path, "ImageSets", "Main", "test.txt")
 
+        # save filenames to lists respectively.
         trainval_files = []
         train_files = []
         val_files = []
@@ -43,9 +49,11 @@ def get_data(input_path):
                 for line in f:
                     test_files.append(line.strip() + ".jpg")
 
+        # obtain Annotations files.
         annots = [os.path.join(annot_path, s) for s in os.listdir(annot_path)]
         idx = 0
 
+        # tqdm is a tool for progressbar.
         annots = tqdm(annots)
         for annot in annots:
             exist = False
@@ -55,17 +63,21 @@ def get_data(input_path):
             et = ET.parse(annot)
             element = et.getroot()
 
+            # parse xml files.
             element_objs = element.findall("object")
             element_filename = element.find("filename").text
             element_width = int(element.find("size").find("width").text)
             element_height = int(element.find("size").find("height").text)
 
+            # parse object attributes.
             if len(element_objs) > 0:
                 annotation_data = {"filepath":os.path.join(imgs_path, element_filename)
                                             , "width":element_width
                                             , "height":element_height
                                             , "bboxes":[]
                                             , "image_id":idx}
+                # seperate dataset by filename, if filename in xxx_files,
+                # then imageset attribute is xxx
                 if element_filename in trainval_files:
                     annotation_data["imageset"] = "trainval"
                     exist = True
@@ -86,6 +98,9 @@ def get_data(input_path):
                 if not exist:
                     continue
 
+                # iterate element_objs
+                # update classes_count
+                # update class_mapping
                 for element_obj in element_objs:
                     class_name = element_obj.find("name").text
                     if class_name not in classes_count:
@@ -96,6 +111,8 @@ def get_data(input_path):
                     if class_name not in class_mapping:
                         class_mapping[class_name] = len(class_mapping)
 
+                    # obtain bndbox
+                    # update annotation_data
                     obj_bbox = element_obj.find("bndbox")
                     x1 = int(round(float(obj_bbox.find("xmin").text)))
                     y1 = int(round(float(obj_bbox.find("ymin").text)))
@@ -108,6 +125,7 @@ def get_data(input_path):
                                                                             , "y1":y1
                                                                             , "y2":y2
                                                                             , "difficult":difficulty})
+                    # annotation_data insert all_image.
                     all_image.append(annotation_data)
 
                     if visualise:

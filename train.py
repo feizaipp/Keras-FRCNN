@@ -77,6 +77,7 @@ if __name__ == "__main__":
     all_imgs, classes_count, class_mapping = get_data(options.train_path)
     #print(all_imgs)
 
+    # if 'bg' is not exist in classes_count, add it
     if "bg" not in classes_count:
         classes_count["bg"] = 0
         class_mapping["bg"] = len(class_mapping)
@@ -89,13 +90,16 @@ if __name__ == "__main__":
     print('Num classes (including bg) = {}'.format(len(classes_count)))
     config_output_filename = options.config_filename
 
+    # save config file
     with open(config_output_filename, "wb") as conf_f:
         pickle.dump(C, conf_f)
         print('Config has been written to {}, and can be loaded when testing to ensure correct results'.format(config_output_filename))
 
+    # shuffle all_images
     random.shuffle(all_imgs)
     num_imgs = len(all_imgs)
-    
+
+    # seperate train date, test data and validate data
     train_imgs = [s for s in all_imgs if s["imageset"] == "train"]
     val_imgs = [s for s in all_imgs if s["imageset"] == "val"]
     test_imgs = [s for s in all_imgs if s["imageset"] == "test"]
